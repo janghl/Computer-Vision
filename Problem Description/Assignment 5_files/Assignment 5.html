@@ -1,0 +1,148 @@
+
+<!-- saved from url=(0077)http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment5-daf.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>Assignment 5</title>
+</head>
+
+<body style="background-color: rgb(255, 204, 153);" link="#0000ff" alink="#00ff00" vlink="#ff00ff"><font face="times new roman">
+
+
+    <h2>Fall 2023 CS543/ECE549</h2> 
+    <h2>Assignment 5: Affine factorization and binocular stereo</h2>
+    <h3>Due date: Wednesday, December 6, 11:59:59PM</h3>
+    
+    
+    <ul>
+		<li> <a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment5-daf.html#part1">Part 1: Affine factorization</a></li>
+		<li> <a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment5-daf.html#part2">Part 2: Binocular stereo</a></li>
+    </ul>
+
+    <a name="part1">
+    <h3>Part 1: Affine Factorization</h3>
+    
+    <p>The goal of this part of the assignment is to implement the Tomasi and Kanade
+    affine structure from motion method as described in lecture.
+    You will be working with Carlo Tomasi's 101-frame hotel sequence:
+    
+    <img src="./Assignment 5_files/hotel_small.jpg"><br><br>
+    
+    </p></a><p><a name="part1"><b></b></a><b><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment5/factorization_data.zip">Download</a></b> the data file, including
+    all the 101 images and a measurement matrix consisting of 215 points visible
+    in each of the 101 frames (see readme file inside archive for details).
+    
+    </p><ol>
+    <li>Load the data matrix and normalize the point coordinates by translating
+		them to the mean of the points in each view (see lecture for details).</li>
+    
+    <li>Apply SVD to the 2M x N data matrix to express it as <tt>D = U @ W @ V'</tt> (using NumPy notation)
+    where U is a 2Mx3 matrix, W is a 3x3 matrix of the top three singular values,
+    and V is a Nx3 matrix. You can use <tt>numpy.linalg.svd</tt> to compute this decomposition. Next, derive structure and motion matrices from the SVD
+		as explained in the lecture.</li>
+    
+    <li>Find the matrix Q to eliminate the affine ambiguity using the method described on slide 32 of the lecture.</li>
+
+    <li>Use <tt>matplotlib</tt> to display the 3D structure (in your report, you may
+    want to include snapshots from several viewpoints to show the structure clearly). 
+		Discuss whether or not the reconstruction has an ambiguity.</li>
+    
+    <li>Display three frames with both the observed feature points and
+    the estimated projected 3D points overlayed. Report your total residual
+    (sum of squared Euclidean distances, in pixels, between the observed
+    and the reprojected features) over all the frames, and plot the per-frame residual
+		as a function of the frame number.</li>
+    </ol>
+    
+    <h3>Part 1 Extra Credit</h3>
+    
+    <ul>
+    <li>Incorporate incomplete point tracks (i.e., points that
+    are not visible in every frame) into the reconstruction. Use the tracks
+		from <b><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment5/tracks.zip">this file</a></b>.</li>
+    <li>Create a textured 3D model of the reconstructed points. For example,
+    you can compute a Delaunay triangulation of the points in 2D, then lift
+		that mesh structure to 3D, and texture it using the images.</li>
+    </ul><br>
+
+
+    <a name="part2">
+    <h3>Part 2: Binocular Stereo</h3>
+    
+    <p>The goal of this part is to implement a simple window-based stereo matching algorithm
+    for rectified stereo pairs. You will be using the following stereo pairs:<br><br>
+    
+    <img src="./Assignment 5_files/tsukuba1.jpg" width="300">&nbsp;<img src="./Assignment 5_files/tsukuba2.jpg" width="300"><br>
+    <img src="./Assignment 5_files/moebius1.png" width="300">&nbsp;<img src="./Assignment 5_files/moebius2.png" width="300"><br><br>
+    
+    </p></a><p><a name="part2">
+    Follow the basic outline given in lecture: pick a window around
+    each pixel in the first (reference) image, and then search the corresponding scanline in the second
+    image for a matching window. The output should be a disparity map with respect to the first view
+    (use these ground truth maps for qualitative reference for </a><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment5/tsukuba_gt.jpg">first pair</a> and <a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment5/moebius_gt.png">second pair</a>).
+    You should experiment with the following settings and parameters:
+    
+    </p><ul>
+    <li><b>Search window size:</b> show disparity maps for several window sizes and discuss which window
+    size works the best (or what are the tradeoffs between using different window sizes). How does the running
+		time depend on window size?</li>
+    
+    <li><b>Disparity range:</b> what is the range of the scanline in the second image that should
+    be traversed in order to find a match for a given location in the first image? Examine the stereo
+    pair to determine what is the maximum disparity value that makes sense, where to start the search
+    on the scanline, and which direction to search in. Report which settings you ended up using.</li>
+    
+    <li><b>Matching function:</b> try sum of squared differences (SSD), sum of absolute differences (SAD), and normalized correlation.
+    Discuss in your report whether there is any difference between using these functions, both
+		in terms of quality of the results and in terms of running time. </li>
+    </ul>
+    
+    In addition to showing your results and discussing implementation parameters, discuss the shortcomings
+    of your algorithm. Where do the estimated disparity maps look good, and where do they look bad? What would be required
+    to produce better results? Also discuss the running time of your approach and what might be needed to make
+    stereo run faster.<br><br>
+    
+    
+    <h3>Part 2 Extra Credit</h3>
+    <ul>
+    <li>
+    Convert your disparity map to a depth map and attempt to <b>visualize the depth map in 3D</b>. Just pretend that
+    all projection rays are parallel, and try to "guess" the depth scaling constant. Experiment with
+		displaying a 3D point cloud, or computing a Delaunay triangulation of that point cloud. </li>
+    
+    <li>
+    Find <b>additional rectified stereo pairs</b> on the Web and show the results of your algorithm on these pairs.</li>
+    
+    <li>
+    Find <b>non-rectified stereo pairs and rectification code</b> on the Web and apply your algorithm to this data.</li>
+    
+    <li>
+    Implement <b>multiple-baseline stereo</b> as described in 
+    <a href="http://www.ri.cmu.edu/publication_view.html?pub_id=2515">this paper</a>. Use
+		<a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment5/tsukuba_multibaseline.zip">this data</a>.</li>
+    
+    <li>
+    Try to incorporate <b>non-local constraints</b> (smoothness, uniqueness, ordering) into your algorithm.
+    You can come up with simple heuristic ways of incorporating these constraints, or try to
+    implement some of the more advanced methods discussed in the course (dynamic programming, graph cuts).
+		For this part, it is also fine to find code on the web.</li>
+    </ul>
+
+    
+     <h3>Submission Instructions</h3>
+    
+     <p>
+     You must upload the following files on <b><a href="https://canvas.illinois.edu/">Canvas</a></b>:
+     </p><ol>
+     <li>Your code in two separate files for part 1 and part 2. The filenames should be <b>lastname_firstname_a5_p1.py</b> and <b>lastname_firstname_a5_p2.py</b>. We prefer that you upload .py python files, but if you use a Python notebook, make sure you upload both the original .ipynb file and an exported PDF of the notebook.
+     </li><li>A report <b>in a single PDF file</b> with all your results and discussion for both parts following this <b><a href="https://docs.google.com/document/d/1K719AFXWxJ_IcNJmRaE64EUD7ECMW2q79RJTwDkVb30/edit#">template</a></b>. The filename should be <b>lastname_firstname_a5.pdf</b>.
+     </li><li>All your output images and visualizations <b>in a single zip file</b>. The filename should be <b>lastname_firstname_a5.zip</b>. Note that this zip file is for backup documentation only, in case we cannot see the images in your PDF report clearly enough. <b><font color="red">You will not receive 
+         credit for any output images that are part of the zip file but are not shown (in some form) in the report PDF.</font></b>
+     </li></ol>
+     
+     <p>Please refer to <a href="http://slazebni.cs.illinois.edu/fall22/policies.html">course policies</a> on academic honesty, collaboration, late days, etc.</p>
+     
+ 
+    
+    
+    
+    </font><div id="extwaiokist" style="display:none" v="dckih" q="dfaaaefa" c="736.4" i="765" u="3.593" s="11202301" sg="svr_09102316-ga_11202301-bai_11202311" d="1" w="false" e="" a="2" m="BMe=" vn="3adgd"><div id="extwaigglbit" style="display:none" v="dckih" q="dfaaaefa" c="736.4" i="765" u="3.593" s="11202301" sg="svr_09102316-ga_11202301-bai_11202311" d="1" w="false" e="" a="2" m="BMe="></div></div></body></html>

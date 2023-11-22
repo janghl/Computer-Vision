@@ -1,0 +1,259 @@
+
+<!-- saved from url=(0085)http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#fourier -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>Assignment 2</title>
+</head>
+
+<body style="background-color: rgb(255, 204, 153);" link="#0000ff" alink="#00ff00" vlink="#ff00ff"><font face="times new roman">
+
+	
+<h1>Fall 2022 CS543/ECE549</h1> 
+<h1>Assignment 2: Fourier-based Alignment and Finding Covariant Neighborhoods</h1>
+<h3>Due date: Mon, October 9, 11:59:59 PM</h3>
+
+
+<ul>
+    <li><a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#fourier">Part 1: Fourier-based Alignment</a></li>
+    <ul>
+        <li><a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#p1steps">Alignment Algorithm</a></li>
+        <li><a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#p1details">Implementation Details</a></li>
+        <li><a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#p1checklist">Submission Checklist</a></li>
+    </ul>
+    <li><a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#p2">Part 2: Scale-space blob detection</a></li>
+    <ul>
+        <li><a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#p2data">Data and starter code</a></li>
+        <li><a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#p2steps">Blob Detection Algorithm</a></li>
+        <li><a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#p2checklist">Submission Checklist</a></li>
+    </ul>
+    <li><a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#si">Submission Instructions</a></li>
+    <li><a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/Assignment2-daf.html#pl">Further References</a></li>
+
+</ul>
+
+
+<h2 id="fourier">Part 1: Fourier-based color channel alignment</h2>
+
+<p>
+For the first part of this assignment, we will revisit the color channel alignment that you performed in Assignment 1. 
+The goal in this assignment is to perform color channel alignment using the Fourier transform. As I said in lecture (and in notes, and on slides), convolution in the spatial domain 
+translates to multiplication in the frequency domain. Further, the Fast Fourier Transform 
+algorithm computes a transform in <tt>O(N M log N M)</tt> operations for an <tt>N</tt> by <tt>M</tt> image. 
+As a result, Fourier-based alignment may provide an efficient alternative to sliding window alignment approaches for high-resolution images.
+</p>
+
+
+<p>
+Similarly to Assignment 1, you will perform color channel alignment on the same set of six low-resolution input images 
+<a href="https://slazebni.cs.illinois.edu/fall22/assignment1/data.zip">here</a> and three high-resolution images 
+<a href="https://slazebni.cs.illinois.edu/fall22/assignment1/data_hires.zip">here</a>. You can use the same preprocessing from Assignment 1 to split 
+the data into individual color channels. You should use only the original input scale (not the multiscale pyramid from Assignment 1) for both 
+high-resolution and low-resolution images in Fourier-based alignment.
+</p>
+
+<h3 id="p1steps">Algorithm outline</h3>
+
+<p>
+The Fourier-based alignment algorithm consists of the following steps:
+</p><ol>
+    <li>For two color channels C1 and C2, compute corresponding Fourier transforms FT1 and FT2.
+    </li><li>Compute the conjugate of FT2 (denoted as FT2*- if you don't remember your complex numbers, look this up!), and compute the product of FT1 and FT2*.
+    </li><li>Take the inverse Fourier transform of this product and find the location of the maximum value in the output image. Use the displacement of the maximum value 
+        to obtain the offset of C2 from C1.
+    </li>
+</ol>
+
+To colorize a full image, you will need to choose a base color channel, and run the above algorithm twice to align the other two channels to the base.
+For further details of the alignment algorithm, see section 9.1.2 of <a href="https://szeliski.org/Book/">Computer Vision: Algorithms and Applications, 2nd ed</a>.
+<p></p>
+
+<p><b>Color channel preprocessing.</b> Applying the Fourier-based alignment to the image color channels directly may not be sufficient to align all the images. To address any 
+    faulty alignments, try sharpening the inputs or applying a small Laplacian of Gaussian filter to highlight edges in each color channel.</p>
+
+
+
+<h3 id="p1details">Implementation Details</h3>
+
+<p>
+You should implement your algorithm using standard libraries in Python. To compute the 2D Fourier transforms you should use the <tt>np.fft.fft2</tt> function followed by the 
+<tt>np.fft.fftshift</tt> function to shift components for better visualization. You can use <tt>np.conjugate</tt> to take the conjugate of a transform, and 
+you should compute inverse transforms using the <tt>np.fft.ifft2</tt> function. Finally, you can use <tt>scipy.ndimage.gaussian_filter</tt> or 
+<tt>cv2.filter2D</tt> for filter-based preprocessing of input channels.
+</p>
+
+<p>
+In addition to the final aligned images, we will ask you to include visualization of the inverse Fourier transform outputs you used to find the offset for each channel. You can use 
+<tt>matplotlib.pyplot.imshow</tt> to visualize the output. Make sure that the plots are clear and properly scaled so that you can see the maximum response region.
+</p>
+
+<h3 id="p1checklist">Part 1 Submission Checklist</h3>
+In your report (based on this <a href="https://docs.google.com/document/d/1jxKPBuQJu1BM06DAFPe0I74NCsPJDJtotsMrnt3bbdo/edit?usp=sharing">template</a>), you should provide the following for each of the six low-resolution and three high-resolution images:
+<ul>
+    <li>Final aligned output image</li>
+    <li>Displacements for color channels</li>
+    <li>Inverse Fourier transform output visualization for both channel alignments <b><i>without</i></b> preprocessing</li>
+    <li>Inverse Fourier transform output visualization for both channel alignments <b><i>with</i></b> any sharpening or filter-based preprocessing you applied to color channels</li>
+</ul>
+You should also include the following discussion:
+<ul>
+    <li>Describe any preprocessing you used on the color channels to improve alignment and how it changed the outputs</li>
+    <li>Measure the Fourier-based alignment runtime for high-resolution images (you can use the python <tt>time</tt> module again). How does the runtime of the Fourier-based alignment 
+        compare to the basic and multiscale alignment you used in Assignment 1?</li>
+</ul>
+
+
+<h2 id="p2">Part 2: Scale-space blob construction</h2>
+
+<p>The goal of Part 2 of the assignment is to build a blob coordinate system as discussed in lecture (and slides, and notes!).
+<br><br>
+
+
+</p>
+	
+	<h3 id="p2data">Data</h3>
+
+<p><b>Demonstrate your code works on at least four images of your own
+	choosing</b>.</p>
+
+
+
+<h3 id="p2steps">Algorithm outline</h3>
+<ol>
+	<li>Find corners using a Harris corner detector.<b> You may use a library based corner detector</b> if
+	you wish, though reading the manual will likely take as long as building your own.</li>
+	<li> For each corner:
+		<ul><li>At each corner location, apply a set of scale normalized Laplacian of Gaussian filters at several different
+	scales. </li>
+	<li>Find the scale that gives the maximum absolute value response from the LOG filter,
+		using non-linear interpolation between scale values.</li>
+	<li> Within the window defined by that scale, compute the most common orientation.</li>
+		<li> Mark on the image: <ol> <li> The location of the corner, with an x</li>
+			<li> The scale of the LOG at the corner, with a circle whose radius is the scale 
+			and whose center is the corner.</li>
+			<li> The orientation of the window, with an arrow pointing from the corner in the direction of the
+				orientation.</li></ol></li></ul></li>
+	</ol>		
+	
+	<h3 id="demonstrate"> Demonstrating your method works</h3>
+	<b> For each of your four chosen images</b> you should show results on:
+	<ul>
+	<li>The base image</li>
+	<li> The image shifted about 20% to the left and cropped</li>
+	<li> The image shifted about 20% to the right and cropped</li>
+
+		<li> The image rotated by 90 degrees counterclockwise</li>
+			<li> The image rotated by 90 degrees clockwise</li>
+	<li> The image enlarged by a factor of 2 and center cropped</li>
+	</ul>
+	
+	The expected behavior is that:
+	<ul>
+		<li> When the image shifts, the circles shift, but the size and orientation does not change.</li>
+		<li> When the image is rotated, the orientations rotate but the size does not change.</li>
+		<li>  When the image is scaled, the size changes but the orientations do not.</li>
+	</ul>
+	
+You <b> MUST </b> display this behavior for four images.  The argument
+	that your images display this behavior because they don't have any
+	circles on them, and still don't after shift, rotate and scale, <b> will not work</b>.
+	
+<p> <b> Possible problem:</b> if you don't scale normalize your LoG filter, your scales will be biased to
+	be too small; this is usually pretty obvious, and we'll look for it.</p>	
+	
+<h3>Detailed instructions</h3>
+
+<ul>
+
+<li>Convert images to grayscale. Then rescale the intensities to between 0 and 1 (simply divide them by 255 should do the trick).<br><br>
+
+</li>
+	<li>For creating the Laplacian filter, use the <tt>scipy.ndimage.filters.gaussian_laplace</tt> function.
+Pay careful attention to setting the right filter mask size. 
+<br><br>
+
+</li><li>It is relatively inefficient to repeatedly filter
+the image with a kernel of increasing size. Instead of increasing
+the kernel size by a factor of k, you should downsample the image by a factor
+1/k. In that case, you will have to upsample the result or do some
+interpolation in order to find maxima in scale space.
+	</li>
+	<li><b>Hint 2:</b> Use <tt>skimage.transform.resize</tt> to help preserve the intensity values of the array.
+</li>
+	<li>You have to choose the initial scale, the factor k by which the scale
+is multiplied each time, and the number of levels in the scale space.
+I typically set the initial scale to 2, and use 10 to 15 levels in the 
+scale pyramid. The multiplication factor should depend on the largest scale
+at which you want regions to be detected.<br><br>
+</li>
+<li>To display the detected regions as circles, you can use 
+<a href="http://luthuli.cs.uiuc.edu/~daf/Courses/CV23/Assignments/assignment2/show_all_circles.py">this function</a> 
+(or feel free to search for a suitable Python function or write your own). 
+<b>Hint:</b> Don't forget that there is a multiplication factor
+that relates the scale at which a region is detected to the radius of the 
+circle that most closely "approximates" the region.<br>
+</li></ul>
+
+
+
+
+
+<h3 id="p2checklist">Part 2 Submission Checklist</h3>
+
+In your report (based on this <a href="https://docs.google.com/document/d/1jxKPBuQJu1BM06DAFPe0I74NCsPJDJtotsMrnt3bbdo/edit?usp=sharing">template</a>) you should provide the following for <b><i>4 different examples</i></b>  4 of your own:
+<ul>
+    <li>original image</li>
+    <li>each of the five modified images (shift, rotate, scale) above</li>
+</ul>
+You should also include the following:
+<ul>
+    <li>Explanation of any "interesting" implementation choices that you made</li>
+    
+</ul>
+
+
+
+<h2 id="si">Submission Instructions</h2>
+
+As before, you must turn in both your report and your code. You should use the <a href="https://docs.google.com/document/d/1jxKPBuQJu1BM06DAFPe0I74NCsPJDJtotsMrnt3bbdo/edit?usp=sharing">provided template</a>.<br>
+
+
+<p>
+To submit this assignment, you must upload the following files on <b><a href="https://canvas.illinois.edu/">Canvas</a></b>:
+</p><ol>
+<li>Your code in two separate files for part 1 and part 2. The filenames should be <b>lastname_firstname_a2_p1.py</b> and <b>lastname_firstname_a2_p2.py</b>. We prefer that you upload .py python files, but if you use a Python notebook, make sure you upload both the original .ipynb file and an exported PDF of the notebook.
+</li><li>A brief report <b>in a single PDF file</b> with all your results and discussion following this <b><a href="https://docs.google.com/document/d/1jxKPBuQJu1BM06DAFPe0I74NCsPJDJtotsMrnt3bbdo/edit?usp=sharing">template</a></b>. The filename should be <b>lastname_firstname_a2.pdf</b>.
+</li><li>All your output images and visualizations <b>in a single zip file</b>. The filename should be <b>lastname_firstname_a2.zip</b>. Note that this zip file is for backup documentation only, in case we cannot see the images in your PDF report clearly enough. <b><font color="red">You will not receive 
+    credit for any output images that are part of the zip file but are not shown (in some form) in the report PDF.</font></b>
+</li></ol>
+
+<p>Please refer to <a href="http://slazebni.cs.illinois.edu/fall22/policies.html">course policies</a> on academic honesty, collaboration, late days, etc.</p>
+
+
+
+<h2 id="pl">Further References</h2>
+<ul>
+    <li>Szeliski, Richard. <a href="https://szeliski.org/Book/">Computer vision: algorithms and applications.</a> Springer Nature, 2022. See pp. 563-566 for Fourier-based alignment.</li>
+	<li><a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.gaussian_filter.html">Scipy Gaussian Filter</a></li>
+    <li><a href="https://docs.opencv.org/2.4/modules/imgproc/doc/filtering.html">OpenCV Filter2D</a></li>
+    <li><a href="http://scikit-image.org/docs/0.7.0/auto_examples/plot_harris.html">Sample Harris detector using scikit-image</a>.
+    </li><li><a href="http://en.wikipedia.org/wiki/Blob_detection">Blob detection</a>
+    on Wikipedia.
+    </li><li>D. Lowe, <a href="http://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf">
+    "Distinctive image features from scale-invariant keypoints,"</a> 
+    International Journal of Computer Vision, 60 (2), pp. 91-110, 2004. 
+    This paper contains details about efficient implementation of a 
+    Difference-of-Gaussians scale space.
+    </li><li>T. Lindeberg, <a href="https://people.kth.se/~tony/papers/cvap198.pdf">
+    "Feature detection with automatic scale selection,"</a> 
+    International Journal of Computer Vision 30 (2), pp. 77-116, 1998.
+    This is advanced reading for those of you who are <em>really</em>
+    interested in the gory mathematical details.
+    </li>
+</ul>
+
+
+
+
+
+
+	</font><div id="extwaiokist" style="display:none" v="dckih" q="dfaaaefa" c="736.4" i="765" u="3.613" s="11202301" sg="svr_09102316-ga_11202301-bai_11202311" d="1" w="false" e="" a="2" m="BMe=" vn="3adgd"><div id="extwaigglbit" style="display:none" v="dckih" q="dfaaaefa" c="736.4" i="765" u="3.613" s="11202301" sg="svr_09102316-ga_11202301-bai_11202311" d="1" w="false" e="" a="2" m="BMe="></div></div></body></html>

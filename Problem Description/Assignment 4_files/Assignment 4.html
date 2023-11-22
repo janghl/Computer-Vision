@@ -1,0 +1,167 @@
+
+<!-- saved from url=(0077)http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment4-daf.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>Assignment 4</title>
+</head>
+
+<body style="background-color: rgb(255, 204, 153);" link="#0000ff" alink="#00ff00" vlink="#ff00ff"><font face="times new roman">
+
+	
+
+
+    <h2>Fall 2023 CS543/ECE549</h2> 
+    <h2>Assignment 4: Single-view and two-view geometry</h2>
+    <h3>Due date: Mon, November 27, 11:59:59PM</h3>
+    
+    <p>The goal of this assignment is to perform single-view 3D measurements, fundamental matrix estimation, triangulation, and camera calibration.</p> <br>
+    
+    <h3>Contents</h3>
+    
+    <ul>
+		<li><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment4-daf.html#single_view">Part 1: Single-view geometry</a></li>
+    <li><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment4-daf.html#fundamental">Part 2: Fundamental matrix estimation, camera calibration, triangulation</a></li>
+		<li><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment4-daf.html#instructions">Grading checklist and submission instructions</a></li>
+    </ul>
+    
+    <a name="single_view">
+		<h3>Part 1: Single-View Geometry</h3></a>
+    
+    
+    <img src="./Assignment 4_files/CSL.jpg" width="600"><br><br>
+    
+    <ol>
+    <li> You will be working with the above image of the North Quad (save it to get the full-resolution version). First, you need to estimate the three major orthogonal vanishing points. Use at least three manually selected lines to solve for each vanishing point.
+    The <b><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment4/mp4_part1.ipynb">part 1 starter code</a></b> provides an interface for selecting and 
+    drawing the lines, but the code for computing the vanishing point needs to be inserted. For 
+    details on estimating vanishing points, see <a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Notes/3dscene_book_svg.pdf">Derek Hoiem's book chapter</a> (section 4). You should also refer to this chapter and the single-view metrology lecture for details on the subsequent steps. In your report, you should:
+    <ul>
+    <li> Plot the VPs and the lines used to estimate them on the image plane using the provided code.</li>
+		<li> Specify the VP pixel coordinates.</li>
+    <li> Plot the ground horizon line and specify its parameters in the form a * x + b * y + c = 0.
+		Normalize the parameters so that: a^2 + b^2 = 1. </li>
+		</ul></li><br>
+   
+    
+    <li> Using the interface, construct the lines on the image that establish that the two gables on the
+		CSL building are the same height.  In your report, explain why these lines do so.</li>
+    </ol>
+    
+    
+    <h3>Extra Credit</h3>
+    
+    <ul>
+    <li> Perform additional measurements on the image: which of the people visible are the tallest? What are the heights of the windows? etc.</li>
+    
+    <li> Attempt to fit lines to the image and estimate vanishing points automatically either using your own code or code found on the Web.</li>
+    
+    <li>Attempt to create a simple texture-mapped 3D model of the ground plane, CSL building, and the spike sculpture.</li>
+    
+    <li> Find or take other images with three prominently visible orthogonal vanishing points and demonstrate varions measurements on those images. </li>
+    </ul><br>
+    
+    
+    
+    <a name="fundamental">
+    <h3>Part 2: Fundamental Matrix Estimation, Camera Calibration, Triangulation</h3>
+    
+    </a><p><a name="fundamental">You will be using these four image pairs:<br><br>
+    
+    <img src="./Assignment 4_files/library1_thumb.jpg">
+    <img src="./Assignment 4_files/library2_thumb.jpg">
+    <img src="./Assignment 4_files/lab1_thumb.jpg">
+    <img src="./Assignment 4_files/lab2_thumb.jpg">
+    <br>
+    <img src="./Assignment 4_files/house1_thumb.jpg">
+    <img src="./Assignment 4_files/house2_thumb.jpg">
+    <img src="./Assignment 4_files/gaudi1_thumb.jpg">
+    <img src="./Assignment 4_files/gaudi2_thumb.jpg">
+    <br><br>
+    
+    First, download the </a><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment4/MP4_part2_data.zip"><b>full-size images and data files</b></a> and <b><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment4/mp4_part2.py">part 2 starter code</a></b>. Note, the images shown above are just thumbnails and should not be used directly. Also note that the <b>house</b> and <b>gaudi</b> pairs are only to be used for item 5 below.
+    </p><ol>
+    
+    <li><b>Fundamental matrix estimation from ground truth matches.</b> Load the <b>lab</b> and <b>library</b> image pairs and matching points file using the starter code. Add your own code to fit a fundamental matrix to the matching points and use the sample code to visualize the results. You need to implement and compare the <b>normalized</b> and the <b>unnormalized</b> algorithms (see the lecture for the methods). For each algorithm and each image pair, report your residual, or the mean squared distance <em>in pixels</em> between points in both images and the corresponding epipolar lines.</li><br><br>
+    
+    <li><b>Camera calibration.</b> For the <b>lab</b> pair, calculate the camera projection matrices by using 2D matches in both views and 3-D point coordinates given in <b>lab_3d.txt</b> in the data file. Refer to the lecture for the calibration method. Once you have computed your projection matrices, you can evaluate them using the <tt>evaluate_points</tt> function included in the starter code, which will provide you the projected 2-D points and residual error. (<b>Hint:</b> For a quick check to make sure you are on the right track, empirically this residual error should be &lt; 20 and the squared distance of your projected 2-D points from actual 2-D points should be &lt; 4.)<br><br>
+    
+    For the <b>library</b> pair, there are no ground truth 3D points. Instead, camera projection matrices are already provided in <b>library1_camera.txt</b> and
+		<b>library2_camera.txt</b>.</li><br><br>
+    
+    <li><b>Calculate the camera centers</b> for the <b>lab</b> and <b>library</b> pairs using the estimated or provided projection matrices.</li><br><br>
+    
+    <li><b>Triangulation.</b> For the <b>lab</b> and <b>library</b> pairs, use linear least squares
+    to triangulate the 3D position of each matching pair of 2D points given the two camera projection matrices 
+    (see the lecture for the method). As a sanity check, your triangulated 3D points for the lab pair should match very closely the originally provided 3D points in <b>lab_3d.txt</b>. 
+    For each pair, display the two camera centers and reconstructed points in 3D. Also report the residuals
+		between the observed 2D points and the projected 3D points in the two images.</li><br><br>
+
+    <li><b>Fundamental matrix estimation without ground-truth matches.</b> 
+        The provided <b>house</b> and <b>gaudi</b> image pairs do not include ground truth 2D matches. For these pairs, you will use your putative match generation and RANSAC code from Assignment 3 to estimate fundamental matrices.
+        To generate matches, you should use the SIFT descriptor functions from OpenCV mentioned in Assignment 3.
+        For this part, only use the <b>normalized</b> algorithm. Report the number of inliers and the average residual for the inliers, and display the inliers in each image.
+        <br>
+    </li>
+    </ol>
+    
+    <h3>Tips and Details</h3>
+    <ul>
+    <li>For fundamental matrix estimation, don't forget to enforce the rank-2 constraint.
+    This can be done by taking the SVD of F, setting the smallest
+		singular value to zero, and recomputing F.</li><br><br>
+    
+    <li> Recall that the camera centers are
+    given by the null spaces of the matrices. They can be found by taking the SVD of the
+		camera matrix and taking the last column of V.</li><br><br>
+    
+    <li>You do not need the camera centers to solve the triangulation problem. They are used just for the visualization.</li>
+    </ul>
+    
+    <h3>Extra Credit</h3>
+    <ul>
+        <li>Perform nonlinear refinement of esimated fundamental matrices and/or triangulated points by minimizing pixel-level residuals as explained in the lectures.</li>
+		<li>Estimate the fundamental matrix using the seven-point algorithm.</li>
+    </ul>
+    
+    <a name="instructions">
+    <h3>Grading checklist</h3>
+    
+    Be sure to include the following in your report:
+    
+    
+    <ol>
+		<li> Single-view geometry: See items 1-4 in Part 3 above.</li>
+    
+		<li> Fundamental matrix estimation, calibration, triangulation:
+    <ol type="a">
+    <li> For the lab and library image pairs, display your result (points and epipolar lines) and report your residual for both unnormalized and normalized fundamental matrix estimation.
+    </li>
+    <li> For the lab image pair, show your estimated 3x4 camera projection matrices. Report the residual between the projected and observed 2D points. 
+    </li>
+    <li> For the lab and library image pairs, visualize 3D camera centers and triangulated 3D points.
+    </li>
+    <li> For the house and gaudi image pairs, display your result and report your number of inliers and average inlier residual for normalized estimation without ground truth matches.
+    </li>
+    </ol><br>
+    </li>
+    
+    </ol>
+    
+    <h3>Submission Instructions</h3>
+    
+    </a><p><a name="instructions">
+    You must upload the following files on <b></b></a><b><a href="https://canvas.illinois.edu/">Canvas</a></b>:
+    </p><ol>
+    <li>Your code in two separate files for part 1 and part 2. The filenames should be <b>lastname_firstname_a4_p1.ipynb</b> and <b>lastname_firstname_a4_p2.py</b>. For part 1, you should also output an exported PDF of the notebook as <b>lastname_firstname_a4_p1.pdf</b> (do the same for part 2 if you decide to submit your code as a Python notebook).
+    </li><li>A report <b>in a single PDF file</b> with all your results and discussion for both parts following this <b><a href="https://docs.google.com/document/d/19Ql3iBZMwlV6XaV3k2h9cVQ1FHtECBxY3FxyJcHCq-4/edit?usp=sharing">template</a></b>. The filename should be <b>lastname_firstname_a4.pdf</b>.
+    </li><li>All your output images and visualizations <b>in a single zip file</b>. The filename should be <b>lastname_firstname_a4.zip</b>. Note that this zip file is for backup documentation only, in case we cannot see the images in your PDF report clearly enough. <b><font color="red">You will not receive 
+        credit for any output images that are part of the zip file but are not shown (in some form) in the report PDF.</font></b>
+    </li></ol>
+
+    <p>Please refer to <a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Course%20Policies.html">course policies</a> on late submission, academic integrity, etc.</p>
+    
+ 
+    
+    
+    
+    </font><div id="extwaiokist" style="display:none" v="dckih" q="dfaaaefa" c="736.4" i="765" u="3.593" s="11202301" sg="svr_09102316-ga_11202301-bai_11202311" d="1" w="false" e="" a="2" m="BMe=" vn="3adgd"><div id="extwaigglbit" style="display:none" v="dckih" q="dfaaaefa" c="736.4" i="765" u="3.593" s="11202301" sg="svr_09102316-ga_11202301-bai_11202311" d="1" w="false" e="" a="2" m="BMe="></div></div></body></html>

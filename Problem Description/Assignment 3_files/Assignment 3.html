@@ -1,0 +1,277 @@
+
+<!-- saved from url=(0077)http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment3-daf.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>Assignment 2</title>
+</head>
+
+<body style="background-color: rgb(255, 204, 153);" link="#0000ff" alink="#00ff00" vlink="#ff00ff"><font face="times new roman">
+
+	
+<h1>Fall 2022 CS543/ECE549</h1> 
+ <h2>Assignment 3: Homography stitching, shape from shading</h2>
+<h3>Due date: Mon, October 30, 11:59:59 PM</h3>
+    
+    <h3>Contents</h3>
+    
+    <ul>
+    <li><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment3-daf.html#homography">Part 1: Stitching pairs of images</a>
+    </li><li><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment3-daf.html#shading">Part 2: Shape from shading</a>
+    </li><li><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/Assignment3-daf.html#checklist">Grading checklist</a>
+    </li></ul>
+    
+    <a name="homography">
+    <h3>Part 1: Stitching pairs of images</h3>
+    
+    The first step is to write code to stitch together a single pair of images. For this part, you will be working with the following pair (click on the images to download the high-resolution versions):<br><br>
+    
+    </a><a href="./Assignment 3_files/left.jpg"><img src="./Assignment 3_files/left.jpg" height="200"></a> 
+    <a href="./Assignment 3_files/right.jpg"><img src="./Assignment 3_files/right.jpg" height="200"></a><br>
+    
+    <ol>
+    <li>Download the <b><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment3/assignment3_part1.py">starter code</a></b>.<br><br>
+    
+    </li><li>Load both images, convert to double and to grayscale.<br><br>
+    
+    </li><li>Detect feature points in both images. You can use this <a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment3/harris.py">Harris detector code</a> (it is also copied into the starter .py file), or feel free to use the blob detector you wrote for Assignment 2.<br><br>
+    
+    </li><li>Extract local neighborhoods around every keypoint in both images, and form descriptors simply by 
+    "flattening" the pixel values in each neighborhood to one-dimensional vectors. Experiment with different neighborhood
+    sizes to see which one works the best. If you're using your Laplacian detector, use the detected feature scales to define the neighborhood scales.
+    
+    <br><br>
+    Alternatively, feel free to experiment with SIFT descriptors. You can use the OpenCV library to extract keypoints and compute descriptors through the function <tt>cv2.SIFT_create().detectAndCompute</tt>. This <a href="https://docs.opencv.org/4.x/da/df5/tutorial_py_sift_intro.html">tutorial</a> provides details about using SIFT in OpenCV.<br><br>
+    
+    </li><li>Compute distances between every descriptor in one image and every descriptor in the other image.
+    In Python, you can use <tt>scipy.spatial.distance.cdist(X,Y,'sqeuclidean')</tt> for fast computation of Euclidean distance.
+    If you are not using SIFT descriptors, you should experiment with computing normalized correlation, or Euclidean distance 
+    after normalizing all descriptors to have zero mean and unit standard deviation.<br><br>
+    
+    </li><li>Select putative matches based on the matrix of pairwise descriptor distances obtained above. 
+    You can select all pairs whose descriptor distances are below a specified threshold,
+    or select the top few hundred descriptor pairs with the smallest pairwise distances.<br><br>
+    
+    </li><li>Implement RANSAC to estimate a homography mapping one image onto the other.
+    Report the number of inliers and the average residual for the inliers
+    (squared distance between the point coordinates in one image and
+    the transformed coordinates of the matching point in the other image).
+    Also, display the locations of inlier matches in both images by using <tt>plot_inlier_matches</tt> (provided in the starter .ipynb).<br><br>
+    
+    A very simple RANSAC implementation is sufficient. Use four matches
+    to initialize the homography in each iteration. You should
+    output a single transformation that gets the most inliers in the course of all
+    the iterations. For the various RANSAC parameters (number of iterations, inlier
+    threshold), play around with a few "reasonable" values and pick the ones
+    that work best. Refer to the alignment and fitting lectures for details on RANSAC.<br><br>
+    
+    Homography fitting, as described in the alignment lecture, calls for homogeneous least squares to start a numerical optimizer. The solution
+    to the homogeneous least squares system AX=0 is obtained from the SVD of A
+    by the singular vector corresponding to the smallest singular value.
+    In Python, 
+    <tt>U, s, V = numpy.linalg.svd(A) </tt> performs the singular value decomposition and<tt> 
+    V[len(V)-1]
+    </tt> gives the smallest singular value.   I would use SCIPY's <tt>scipy.optimize.minmize</tt>(see <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html"> the manual page</a>) to minimize the error in image coordinates.
+    <br><br>
+    
+    </li><li>Warp one image onto the other using the estimated transformation. In Python, use
+    <tt>skimage.transform.ProjectiveTransform</tt> and <tt>skimage.transform.warp</tt>.
+    <br><br>
+    
+    </li><li>Create a new image big enough to hold the panorama and composite the two images into it. 
+    You can composite by averaging the pixel values where the two images overlap, or by using the pixel values from one of the images.
+    Your result should look something like this:<br>
+    
+    <img src="./Assignment 3_files/greyscale.png" width="800"><br><br>
+    </li><li> You should create a color panorama by applying the same compositing step to each of the
+    color channels separately (for estimating the transformation, it is sufficient to use grayscale images).
+    </li></ol>
+    
+    
+    <a name="bonus1">
+    <h3>For extra credit</h3>
+    </a><ul><a name="bonus1">
+    
+    </a><li><a name="bonus1">Extend your homography estimation to work on multiple images. 
+    You can use <b></b></a><b><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment3/part1_extra_credit.zip">this data</a></b>, consisting of three sequences consisting of three images each. For the "pier" sequence, sample output can look as follows (although yours may be different if you choose a different order of transformations):<br><br>
+    
+    <img src="./Assignment 3_files/pier_homography_final_output.jpg" width="800"><br>
+    
+    Alternatively, feel free to acquire your own images and stitch them.<br><br>
+    
+    </li><li>Experiment with registering very "difficult" image pairs or sequences -- for instance, try to
+    find a modern and a historical view of the same location to mimic the kinds of
+    composites found <a href="http://blog.flickr.net/en/2010/01/27/a-look-into-the-past/">here</a>.
+    Or try to find two views of the same location taken at different times of day, different
+    times of year, etc. Another idea is to try to register images with a lot of repetition,
+    or images separated by an extreme transformation (large rotation, scaling, etc.).
+    To make stitching work for such challenging situations, you may need to experiment with
+    alternative feature detectors and/or descriptors, as well as feature space outlier
+    rejection techniques such as Lowe's ratio test.<br><br>
+    </li><li>Try to implement a more complete version of a system for <a href="http://www.cs.bath.ac.uk/brown/autostitch/autostitch.html">"Recognizing panoramas"</a> --
+    i.e., a system that can take as input a "pile" of input images (including possible outliers), figure out
+    the subsets that should be stitched together, and then stitch them together. As data for this, either use
+    images you take yourself or combine all the provided input images into one folder (plus, feel free to add
+    outlier images that do not match any of the provided ones).<br><br>
+    
+    </li><li>Implement bundle adjustment or global nonlinear optimization to simultaneously refine transformation parameters between all pairs of images.<br><br>
+    </li><li>Learn about and experiment with image blending techniques and panorama mapping techniques (cylindrical or spherical).<br><br>
+    </li></ul>
+    
+    <a name="shading">
+    <h3>Part 2: Shape from shading</h3>
+    
+    
+    <img src="./Assignment 3_files/shape_from_shading.jpg" width="600"><br>
+    
+    
+    The goal of this part is to implement shape from shading as described in the lecture on light
+    (see also Section 2.2.4 of Forsyth &amp; Ponce 2nd edition). 
+    
+    </a><ol><a name="shading">
+    <!--<li> You need the following python libraries: <tt>numpy, matplotlib, jupyter, Pillow</tt>.<br><br>-->
+        
+    </a><li><a name="shading"> Download the <b></b></a><b><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment3/croppedyale.zip">data</a></b> and <b><a href="http://luthuli.cs.uiuc.edu/~daf/courses/CV23/Assignments/assignment3/assignment3_part2.py">starter code</a></b>. The data
+    consists of 64 images each of four subjects from the <a href="http://www.cad.zju.edu.cn/home/dengcai/Data/FaceData.html">Yale Face database</a>.
+    The light source directions are encoded in the file names. We have provided utilities to load the input data and display the output. Your task will be to implement the functions <tt>preprocess</tt>, <tt>photometric_stereo</tt> and <tt>get_surface</tt> in the ipython notebook, as explained below. <br><br>
+        
+    </li><li> For each subject (subdirectory in croppedyale), read in the images and 
+    light source directions. The function <tt>LoadFaceImages</tt> returns the images for the 64 light source
+    directions and an <em>ambient</em> image (i.e., image taken with all the light sources
+    turned off). <b>The <tt>LoadFaceImages</tt> function is completed and provided to you in the starter code.</b><br><br>
+    
+    </li><li> Preprocess the data: subtract the ambient image from each image in the light source stack, 
+    set any negative values to zero, rescale the resulting intensities to between 0 and 1 
+    (they are originally between 0 and 255). <b>Complete the <tt>preprocess</tt> function.</b><br><br> 
+    
+    <!--<b>Hint:</b> these operations can be done without using any loops. You may want to look into the concept of array broadcasting in numpy.<br><br>-->
+    
+    
+    </li><li> Estimate the albedo and surface normals. For this, you need to fill in
+    code in <tt>photometric_stereo</tt>, which is a function taking as input 
+    the image stack corresponding to the different light source directions and the matrix 
+    of the light source directions, 
+    and returning an albedo image and surface normal estimates. The latter should be stored in 
+    a three-dimensional matrix. That is, if your original image dimensions are <tt>h x w</tt>,
+    the surface normal matrix should be <tt>h x w x 3</tt>, where the third dimension corresponds
+    to the x-, y-, and z-components of the normals. To solve for the albedo and the normals,
+    you will need to set up a linear system. To get the least-squares solution of a linear system, use <tt>numpy.linalg.lstsq</tt> function.
+    <b>Complete the <tt>photometric_stereo</tt> function.</b><br><br>
+    
+    </li><li> If you directly implement the formulation from the lecture, you will
+    have to loop over every image pixel and separately solve a linear system in each iteration.
+    There is a way to get all the solutions at once by stacking the unknown <b>g</b> vectors for 
+    every pixel into a <tt>3 x npix</tt> matrix and getting all the solutions with a single 
+    call to numpy solver.<br><br>
+    
+    You will most likely need to reshape your data in various ways before and after
+    solving the linear system. Useful numpy functions for this include <tt>reshape</tt>, <tt>expand_dims</tt>
+    and <tt>stack</tt>. 
+    <br><br>
+    
+    </li><li> Compute the surface height map by integration. More precisely, instead of continuous integration of the partial derivatives
+    over a path, you will simply be summing their discrete values. Your code implementing
+    the integration should go in the <tt>get_surface</tt> function. 
+    As stated in the slide, to get the best results, you should compute integrals
+    over multiple paths and average the results. <b>Complete the <tt>get_surface</tt> function.</b> <br><br>
+    
+    You should implement the following variants of
+    integration: 
+    <ol type="a">
+    <li> Integrating first the rows, then the columns. That is, your path first goes along
+    the same row as the pixel along the top, and then goes vertically down to the pixel.
+    It is possible to implement this without nested loops using the <tt>cumsum</tt> function.
+    </li><li> Integrating first along the columns, then the rows.
+    </li><li> Average of the first two options. 
+    </li><li> Average of multiple random paths. For this, it is fine to use
+    nested loops. You should determine the number of paths experimentally.<br><br>
+    </li></ol> 
+    
+    </li><li> Display the results using functions <tt>display_output</tt> and <tt>plot_surface_normals</tt>
+    included in the notebook. <br><br>
+    </li></ol>
+    
+    <h3>Extra Credit</h3>
+    
+    On this assignment, there are not too many opportunities for "easy" extra credit. This said, here are some ideas for exploration:
+    <ul>
+    <li> Generate synthetic input data using a 3D model and a graphics renderer and run your method on this data. Do you get better results than on the face data?
+    How close do you get to the ground truth (i.e., the true surface shape and albedo)?
+    </li><li> Investigate more advanced methods for shape from shading or surface reconstruction from normal fields.
+    </li><li> Try to detect and/or correct misalignment problems in the initial images and see if you can improve the solution.
+    </li><li> Using your initial solution, try to detect areas of the original images that do not meet the assumptions of the method (shadows, specularities, etc.).
+    Then try to recompute the solution without that data and see if you can improve the quality of the solution.
+    </li></ul>
+    If you complete any work for extra credit, be sure to clearly mark that work in your report.<br><br>
+    
+    
+    
+    <a name="checklist">
+    <h3>Grading checklist</h3>
+    
+    <h4>Part 1: Homography estimation</h4>
+    <ol type="a">
+    <li> Describe your solution, including any interesting parameters or implementation choices for feature extraction, putative matching, RANSAC, etc.
+    </li>
+    <li> For the image pair provided, report the number of homography inliers and the average residual for the inliers (squared distance between the point coordinates in one image and the transformed coordinates of the matching point in the other image). Also, display the locations of inlier matches in both images.
+    </li>
+    <li> Display the final result of your stitching.
+    </li>
+    </ol>
+    
+    <h4>Part 2: Shape from shading</h4>
+    <ol>
+    <li> Briefly describe your implemented solution, focusing especially on the more
+    "non-trivial" or interesting parts of the solution. What implementation choices did you
+    make, and how did they affect the quality of the result and the speed of computation?
+    What are some artifacts and/or limitations of your implementation, and what are 
+    possible reasons for them?<br><br>
+    
+    </li><li> Discuss the differences between the different integration methods
+    you have implemented for #5 above. Specifically, you should choose one subject, 
+    display the outputs for all of a-d (be sure to choose viewpoints that make the differences
+    especially visible), and discuss which method produces the best results and why. 
+    You should also compare the running times of the different approaches. For the remaining subjects (see below), 
+    it is sufficient to simply show the output of your best method, and it is not necessary
+    to give running times.<br><br>
+    
+    </li><li> For every subject, display your estimated albedo maps and screenshots of height maps
+    (use <tt>display_output</tt> and <tt>plot_surface_normals</tt>). 
+    When inserting results images into your report, you
+    should resize/compress them appropriately to keep the file size manageable -- but make sure
+    that the correctness and quality of your output can be clearly and easily judged. 
+    For the 3D screenshots, be sure to choose a viewpoint that makes the structure as clear
+    as possible (and/or feel free to include screenshots from multiple viewpoints). 
+    <b>You will not receive credit for any results you have obtained, but failed to include
+    directly in the report PDF file.</b>
+    <br><br>
+    
+    </li><li> Discuss how the Yale Face data violate the assumptions of the shape-from-shading method
+    covered in the slides. What features of the data can contribute to errors in the results?
+    Feel free to include specific input images to illustrate your points. Choose one subject and
+    attempt to select a subset of all viewpoints that better match the assumptions of the method.
+    Show your results for that subset and discuss whether you were able to get any improvement
+    over a reconstruction computed from all the viewpoints.
+    </li></ol>
+    
+    
+    
+    <h3>Submission Instructions</h3>
+    
+    </a><p><a name="checklist">
+    You must upload the following files on <b></b></a><b><a href="https://canvas.illinois.edu/">Canvas</a></b>:
+    </p><ol>
+    <li>Your code in two separate files for part 1 and part 2. The filenames should be <b>lastname_firstname_a3_p1.py</b> and <b>lastname_firstname_a3_p2.py</b>. We prefer that you upload .py python files, but if you use a Python notebook, make sure you upload both the original .ipynb file and an exported PDF of the notebook.
+    </li><li>A report <b>in a single PDF file</b> with all your results and discussion for both parts following this <b><a href="https://docs.google.com/document/d/1Q6DAppKHrrwQ1HRMl-bmh_PoZ8KCNN1NXrTKSUzZz8M/edit?usp=sharing">template</a></b>. The filename should be <b>lastname_firstname_a3.pdf</b>.
+    </li><li>All your output images and visualizations <b>in a single zip file</b>. The filename should be <b>lastname_firstname_a3.zip</b>. Note that this zip file is for backup documentation only, in case we cannot see the images in your PDF report clearly enough. <b><font color="red">You will not receive 
+        credit for any output images that are part of the zip file but are not shown (in some form) in the report PDF.</font></b>
+    </li></ol>
+    
+    <p>Please refer to <a href="http://slazebni.cs.illinois.edu/fall22/policies.html">course policies</a> on academic honesty, collaboration, late days, etc.</p>
+    
+    
+    
+    
+    
+    
+    
+        </font><div id="extwaiokist" style="display:none" v="dckih" q="dfaaaefa" c="736.4" i="765" u="3.592" s="11202301" sg="svr_09102316-ga_11202301-bai_11202311" d="1" w="false" e="" a="2" m="BMe=" vn="3adgd"><div id="extwaigglbit" style="display:none" v="dckih" q="dfaaaefa" c="736.4" i="765" u="3.592" s="11202301" sg="svr_09102316-ga_11202301-bai_11202311" d="1" w="false" e="" a="2" m="BMe="></div></div></body></html>
